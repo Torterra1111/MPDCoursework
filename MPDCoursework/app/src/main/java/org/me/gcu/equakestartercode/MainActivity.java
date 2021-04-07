@@ -23,8 +23,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ListView;
-import android.widget.MediaController;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -37,6 +35,7 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Date;
 import java.util.Locale;
 import java.time.Month;
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view){
                 Test();
-                SortList(QuakeDisplayTitle,Magnitude);
+                SortList(QuakeDisplayTitle,Magnitude,true);
             }
         });
 
@@ -194,15 +193,12 @@ public class MainActivity extends AppCompatActivity
 
     private void StartDatePick() {
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
-
             @Override
             public void onDateSet(DatePicker view, int year, int month, int day) {
                 month = month + 1;
                 String date = makeDateString(day,month,year);
                 StartDate = date;
                 DateStart.setText(+day + "/" + month + "\n" + year);
-
-
             }
 
         };
@@ -213,7 +209,6 @@ public class MainActivity extends AppCompatActivity
 
         int style = AlertDialog.THEME_HOLO_LIGHT;
         datePickerDialog = new DatePickerDialog(this,style,dateSetListener,DisplayYear,DisplayMonth,Displayday);
-
     }
 
     private void EndDatePick() {
@@ -240,7 +235,7 @@ public class MainActivity extends AppCompatActivity
     private String makeDateString(int day, int month, int year) {
         if(day <= 9)
         {
-            return ("0"+ day + " " + month + " " + year);
+            return ("0" + day + " " + month + " " + year);
         }
         else
         {
@@ -383,7 +378,7 @@ public class MainActivity extends AppCompatActivity
             }
             //Create adaptor
             Test();
-            SortList(QuakeDisplayTitle,Magnitude);
+            SortList(QuakeDisplayTitle,Magnitude,true);
             progressdialouge.dismiss();
         }
 
@@ -391,26 +386,25 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    public void SortList(ArrayList<String> ArrayInfo, ArrayList<Double> QuakeStrength)
+    public void SortList(ArrayList<String> ArrayInfo, ArrayList<Double> QuakeStrength, boolean Do)
     {
-            for(int i = 0; i < QuakeStrength.size(); i++)
-            {
-                Log.i("MAG", "MAGNITUDE: " + QuakeStrength.get(i));
-            }
             adapt = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, ArrayInfo){
             @NonNull
             @Override
             public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);
                 //ColorSort.
-                if(QuakeStrength.get(position) <= 0.6) {
-                    view.setBackgroundColor(Color.GREEN);
-                }
-                else if (QuakeStrength.get(position) > 0.6 && QuakeMag.get(position) <= 1.2) {
-                    view.setBackgroundColor(Color.YELLOW);
-                }
-                else {
-                    view.setBackgroundColor(Color.RED);
+                if(Do)
+                {
+                    if(QuakeStrength.get(position) <= 0.6) {
+                        view.setBackgroundColor(Color.GREEN);
+                    }
+                    else if (QuakeStrength.get(position) > 0.6 && QuakeMag.get(position) <= 1.2) {
+                        view.setBackgroundColor(Color.YELLOW);
+                    }
+                    else {
+                        view.setBackgroundColor(Color.RED);
+                    }
                 }
 
                 return view;
@@ -487,6 +481,7 @@ public class MainActivity extends AppCompatActivity
         //Date storage
         String DateBegin;
         String DateEnd;
+        //Temp storage for
         //Date infomation sort
         if (SEDate && SSDate) {
             //Clear info for storage
@@ -505,8 +500,8 @@ public class MainActivity extends AppCompatActivity
             int Ds = Integer.parseInt(Dp.trim()); //DAY START
             String Dep = EndDate.substring(0, 2);
             int De = Integer.parseInt(Dep.trim()); //DAY END
-
             String Mp = StartDate.substring(3, 5);
+
             int Ms = Integer.parseInt(Mp.trim()); //MONTH START
             String Mep = EndDate.substring(3, 5);
             int Me = Integer.parseInt(Mep.trim()); //MONTH END
@@ -515,6 +510,8 @@ public class MainActivity extends AppCompatActivity
             int Ys = Integer.parseInt(Yp.trim()); //YEAR START
             String Yep = EndDate.substring(5, 9);
             int Ye = Integer.parseInt(Yep.trim()); //YEAR END
+            LocalDate DayStart = LocalDate.of(Ys, Ms, Ds);
+            LocalDate DayEnd = LocalDate.of(Ye, Me, De);
             //START CHECKING
             for (int v = 0; v < QuakeTitle.size(); v++) {
                 String DateArrayPull = QuakeSortedDate.get(v);
@@ -526,33 +523,14 @@ public class MainActivity extends AppCompatActivity
 
                 String Ycp = DateArrayPull.substring(5, 9);
                 int Yc = Integer.parseInt(Ycp.trim()); //DAY CHECK
-                if(Ys < Yc & Ye > Yc)
+                LocalDate DayCheck = LocalDate.of(Yc, Mc, Dc);
+
+                if(DayEnd.compareTo(DayCheck) >= 0 && DayStart.compareTo(DayCheck) <= 0)
                 {
                     Displaylol.add(QuakeTitle.get(v));
                     ResetDisplay.add(QuakeTitle.get(v));
                     PutInfo(v);
                 }
-                else if (Ys == Yc || Ye == Yc) //In Year
-                {
-                    if (Ms < Mc && Me > Mc) {
-                        Displaylol.add(QuakeTitle.get(v));
-                        ResetDisplay.add(QuakeTitle.get(v));
-                        PutInfo(v);
-                    } else if (Ms == Mc || Me == Mc) {
-
-                        if(Ms == Mc && Ds <= Dc) {
-                            Displaylol.add(QuakeTitle.get(v));
-                            ResetDisplay.add(QuakeTitle.get(v));
-                            PutInfo(v);
-                        }
-                        else if (Me == Mc && De >= Dc) {
-                            Displaylol.add(QuakeTitle.get(v));
-                            ResetDisplay.add(QuakeTitle.get(v));
-                            PutInfo(v);
-                        }
-                    }
-                }
-
             }
             if(Displaylol.size() >= 1) //Catch for null
             {
@@ -676,7 +654,7 @@ public class MainActivity extends AppCompatActivity
                     String trans = separated[0].trim();
                     ViewListDisplay.add(trans);
                 }
-                SortList(ViewListDisplay,Magnitude);
+                SortList(ViewListDisplay,Magnitude,false);
             }
             else {
                 Toast Aeoi = Toast.makeText(MainActivity.this,"No earthquakes between dates! Displaying normal feed.",Toast.LENGTH_SHORT);
@@ -689,7 +667,7 @@ public class MainActivity extends AppCompatActivity
                     String trans = separated[0].trim();
                     ViewListDisplay.add(trans);
                 }
-                SortList(ViewListDisplay,Magnitude);
+                SortList(ViewListDisplay,Magnitude,true);
             }
             SEDate = false;
             SSDate = false;
@@ -721,7 +699,6 @@ public class MainActivity extends AppCompatActivity
                 break;
             }
         }
-
     }
     public void ResetList()
     {
